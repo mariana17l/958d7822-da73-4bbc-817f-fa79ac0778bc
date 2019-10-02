@@ -32,8 +32,29 @@ class Main(object):
 
     @staticmethod
     def play_multiple_games(strategy="random", times=100, opts=3, save=""):
-        # TODO: implement multiple games
-        raise NotImplementedError
+        result_ = []
+        for i in range(times):
+            game = play_random_game(number_of_options=opts, strategy=strategy)
+            result_.append(game)
+
+        def unique(list_):
+            unique_list = []
+            for x in list_:
+                if x not in unique_list:
+                    unique_list.append(x)
+            return unique_list
+
+        unique_ = unique(result_)
+        freq = []
+        for j in unique_:
+            freq.append(result_.count(j))
+
+        freq_prob = [x / times for x in freq]
+        result_df = pd.DataFrame(list(zip(freq, freq_prob)), index=unique_, columns=['Frequency', 'Probability'])
+        print(result_df)
+        if save:
+            result_df.to_csv(save)
+        return
 
 
 if __name__ == "__main__":
