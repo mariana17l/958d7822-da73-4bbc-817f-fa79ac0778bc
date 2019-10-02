@@ -1,20 +1,17 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
+import math
 
 class Cashflow(object):
-    """Cashflow
-    Create a cashflow-class definition.
-    
-    Attributes: 
-        * amount - monetary amount at time t.
-        * t - integer representing time. 
-        
-    Methods:
-        * present_value(self, interest_rate) - returns the present value of the cashfow given a interest-rate.
-    """
 
+    def __init__(self, **kwargs):
+        self.amount = kwargs['amount']
+        self.t = kwargs['t']
+
+    def present_value(self, interest_rate):
+        pv = self.amount/((1+interest_rate)**self.t)
+        return pv
 
 class InvestmentProject(object):
     RISK_FREE_RATE = 0.08
@@ -37,32 +34,36 @@ class InvestmentProject(object):
         return np.irr([flow.amount for flow in self.cashflows])
 
     def plot(self, show=False):
-        """Plot Cashflows
-        The `plot` function creates a bar plot (fig) where x=t and y=amount.
-        :param show: boolean that represents whether to run `plt.show()` or not.
-        :return: matplotlib figure object.
-        """
-        # TODO: implement plot method
-        raise NotImplementedError
-
+        amount_ = []
+        t_ = []
+        for obj in self.cashflows:
+            amount_.append(obj.amount)
+            t_.append(obj.t)
+        fig = plt.figure(1)
+        plt.bar(np.arange(len(amount_)), amount_)
+        plt.xticks(np.arange(len(t_)), t_)
+        plt.title('Cashflows bar chart')
+        plt.xlabel('Time')
+        plt.ylabel('Amount ($)')
+        if show:
+            plt.show()
+        return fig
 
     def net_present_value(self, interest_rate=None):
-        """ Net Present Value
-        Calculate the net-present value of a list of cashflows.
-        :param interest_rate: represents the discount rate.
-        :return: a number (currency) representing the net-present value.
-        """
-        # TODO: implement net_present_value method
-        raise NotImplementedError
+        if interest_rate is None:
+            interest_rate = self.hurdle_rate
+        npv = 0
+        for i in self.cashflows:
+            npv += i.present_value(interest_rate=interest_rate)
+        return npv
 
     def equivalent_annuity(self, interest_rate=None):
-        """ Equivalent Annuity
-        Transform a set of cashflows into a constant payment.
-        :param interest_rate: represents the interest-rate used with the annuity calculations.
-        :return: a number (currency) representing the equivalent annuity.
-        """
-        # TODO: implement equivalent_annuity methdo
-        raise NotImplementedError
+        if interest_rate is None:
+            interest_rate = self.hurdle_rate
+        a = (self.net_present_value(interest_rate) * interest_rate)
+        b = 1 - (1 + interest_rate) ** (-self.cashflow_max_position)
+        c = a / b
+        return c
 
     def describe(self):
         return {
